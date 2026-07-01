@@ -113,7 +113,7 @@ async def activate_user(activation_data: UserActivationRequestSchema, db: DbSess
         )
 
     if (
-        datetime.now(timezone.utc).replace(tzinfo=None)
+        datetime.now()
         >= user_db.activation_token.expires_at
     ):
         raise HTTPException(
@@ -295,7 +295,7 @@ async def reset_password_complete(
             status_code=HTTPStatus.BAD_REQUEST, detail="Invalid email or token."
         )
 
-    if datetime.now(timezone.utc).replace(tzinfo=None) >= existing_token.expires_at:
+    if datetime.now() >= existing_token.expires_at:
         await db.delete(existing_token)
         await db.commit()
         raise HTTPException(
