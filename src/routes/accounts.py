@@ -91,14 +91,14 @@ async def activate_user(activation_data: UserActivationRequestSchema, db: DbSess
 
     result = await db.execute(stmt)
     user_db = result.scalar_one_or_none()
+    if not user_db:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail="Invalid or expired activation token."
+        )
+
     if user_db.is_active:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST, detail="User account is already active."
-        )
-
-    if not user_db:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail="User is not found."
         )
 
     if not user_db.activation_token:
@@ -109,7 +109,7 @@ async def activate_user(activation_data: UserActivationRequestSchema, db: DbSess
 
     if user_db.activation_token.token != activation_data.token:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail="Token is invalid."
+            status_code=HTTPStatus.BAD_REQUEST, detail="Invalid or expired activation token."
         )
 
     if (
@@ -260,7 +260,7 @@ async def reset_password(
         await db.rollback()
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            detail="An error occurred during user creation.",
+            detail="An error occurred while resetting the password.",
         )
     return message
 
